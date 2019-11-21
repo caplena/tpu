@@ -192,7 +192,7 @@ def preprocess_for_train(image_bytes, use_bfloat16, image_size=IMAGE_SIZE,
   return image
 
 
-def preprocess_for_eval(image_bytes, use_bfloat16, image_size=IMAGE_SIZE):
+def preprocess_for_eval(image_bytes, use_bfloat16, image_size=IMAGE_SIZE, crop_images=True):
   """Preprocesses the given image for evaluation.
 
   Args:
@@ -203,7 +203,11 @@ def preprocess_for_eval(image_bytes, use_bfloat16, image_size=IMAGE_SIZE):
   Returns:
     A preprocessed image `Tensor`.
   """
-  image = _decode_and_center_crop(image_bytes, image_size)
+  if crop_images:
+    image = _decode_and_random_crop(image_bytes, image_size)
+  else:
+    image = tf.image.decode_jpeg(image_bytes, channels=3)
+    image = tf.image.resize_bicubic([image], [image_size, image_size])[0]
   image = tf.reshape(image, [image_size, image_size, 3])
   image = tf.image.convert_image_dtype(
       image, dtype=tf.bfloat16 if use_bfloat16 else tf.float32)
@@ -243,4 +247,4 @@ def preprocess_image(image_bytes,
         image_bytes, use_bfloat16, image_size, augment_name,
         randaug_num_layers, randaug_magnitude, crop_images)
   else:
-    return preprocess_for_eval(image_bytes, use_bfloat16, image_size)
+    return preprocess_for_eval(image_bytes, use_bfloat16, image_size, crop_images)
