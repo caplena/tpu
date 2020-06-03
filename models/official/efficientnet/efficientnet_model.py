@@ -677,7 +677,7 @@ class Model(tf.keras.Model):
             block_size=self._global_params.dropblock_block_size)
         outputs = dropblocker(outputs,training)
     elif self._global_params.regularize_feature_map == 'dropout':
-        dropout = tf.keras.layers.Dropout(drop_rate=1.0-self._global_params.regularize_feature_map_keep_prob)
+        dropout = tf.keras.layers.Dropout(1.0-self._global_params.regularize_feature_map_keep_prob)
         outputs = dropout(outputs, training)
     print(outputs.get_shape())
     if not features_only:
