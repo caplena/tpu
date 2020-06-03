@@ -181,9 +181,9 @@ def efficientnet(width_coefficient=None,
       depth_divisor=8,
       min_depth=None,
       relu_fn=tf.nn.swish,
-      dropblock_on_feature_maps=False,
+      regularize_feature_map=False,
+      regularize_feature_map_keep_prob=0.8,
       dropblock_block_size=2,
-      dropblock_keep_prob=0.8,
       # The default is TPU-specific batch norm.
       # The alternative is tf.layers.BatchNormalization.
       batch_norm=utils.TpuBatchNormalization,  # TPU-specific requirement.

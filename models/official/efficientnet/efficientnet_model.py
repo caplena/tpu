@@ -40,8 +40,8 @@ GlobalParams = collections.namedtuple('GlobalParams', [
     'batch_norm_momentum', 'batch_norm_epsilon', 'dropout_rate', 'data_format',
     'num_classes', 'width_coefficient', 'depth_coefficient', 'depth_divisor',
     'min_depth', 'drop_connect_rate', 'relu_fn', 'batch_norm', 'use_se',
-    'local_pooling', 'condconv_num_experts', 'dropblock_on_feature_maps',
-    'dropblock_block_size', 'dropblock_keep_prob'
+    'local_pooling', 'condconv_num_experts', 'regularize_feature_map',
+    'dropblock_block_size', 'regularize_feature_map_keep_prob'
 ])
 GlobalParams.__new__.__defaults__ = (None,) * len(GlobalParams._fields)
 
@@ -670,12 +670,15 @@ class Model(tf.keras.Model):
             if is_reduction:
               self.endpoints['reduction_%s/%s' % (reduction_idx, k)] = v
     self.endpoints['features'] = outputs
-    if self._global_params.dropblock_on_feature_maps:
+    if self._global_params.regularize_feature_map == 'dropblock':
         from nets.dropblock import DropBlock2D
         dropblocker = DropBlock2D(
-            keep_prob=self._global_params.dropblock_keep_prob,
+            keep_prob=self._global_params.regularize_feature_map_keep_prob,
             block_size=self._global_params.dropblock_block_size)
         outputs = dropblocker(outputs,training)
+    elif self._global_params.regularize_feature_map == 'dropout':
+        dropout = tf.keras.layers.Dropout(drop_rate=1.0-self._global_params.regularize_feature_map_keep_prob)
+        outputs = dropout(outputs, training)
     print(outputs.get_shape())
     if not features_only:
       # Calls final layers and returns logits.
