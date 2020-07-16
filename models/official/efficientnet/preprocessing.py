@@ -136,7 +136,8 @@ def _flip(image):
 
 def preprocess_for_train(image_bytes, use_bfloat16, image_size=IMAGE_SIZE,
                          augment_name=None,
-                         randaug_num_layers=None, randaug_magnitude=None, crop_images=True):
+                         randaug_num_layers=None, randaug_magnitude=None, crop_images=True,
+                         flip=True):
   """Preprocesses the given image for evaluation.
 
   Args:
@@ -161,7 +162,8 @@ def preprocess_for_train(image_bytes, use_bfloat16, image_size=IMAGE_SIZE,
   else:
     image = tf.image.decode_jpeg(image_bytes, channels=3)
     image = tf.image.resize_bicubic([image], [image_size, image_size])[0]
-  image = _flip(image)
+  if flip:
+      image = _flip(image)
   image = tf.reshape(image, [image_size, image_size, 3])
 
   image = tf.image.convert_image_dtype(
@@ -221,7 +223,8 @@ def preprocess_image(image_bytes,
                      augment_name=None,
                      randaug_num_layers=None,
                      randaug_magnitude=None,
-                     crop_images=True):
+                     crop_images=True,
+                     flip=True):
   """Preprocesses the given image.
 
   Args:
@@ -245,6 +248,6 @@ def preprocess_image(image_bytes,
   if is_training:
     return preprocess_for_train(
         image_bytes, use_bfloat16, image_size, augment_name,
-        randaug_num_layers, randaug_magnitude, crop_images)
+        randaug_num_layers, randaug_magnitude, crop_images, flip)
   else:
     return preprocess_for_eval(image_bytes, use_bfloat16, image_size, crop_images)
